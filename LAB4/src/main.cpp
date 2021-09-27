@@ -23,12 +23,11 @@
 #define pot1 32
 #define pot2 13
 //botones para incrementar y decrementar
-#define btn1 34
-#define btn2 35
+#define btn1 14
+#define btn2 27
 //-----------------------------------------------------------------------------
 //Prototipo de funciones
 //-----------------------------------------------------------------------------
-
 
 //-----------------------------------------------------------------------------
 //Variabls Globales
@@ -40,33 +39,57 @@ int adcRaw;
 float voltaje;
 float voltaje2;
 
-int cbtn1 = 0; 
+int cbtn1 = 0;
+int contador = 0;
+int suma = 0;
+int resta = 0;
+int sube = 0;
+int baja = 0;
+bool presionar = false;
 //-----------------------------------------------------------------------------
 //ISR
 //-----------------------------------------------------------------------------
 void IRAM_ATTR sumab1() //interrupcion de incremento
 {
-  if (digitalRead((btn1) == HIGH))
+  suma = digitalRead(btn1);
+  if (suma != sube)
   {
-    cbtn1++;
+    if (suma == LOW)
+    {
+      presionar = true;
+      contador++;
+      Serial.println(contador);
+    }
+
+    delay(50);
   }
-  if (cbtn1 > 255)
+
+  sube = suma;
+  if (contador > 255)
   {
-    cbtn1 = 0;
+    contador = 0;
   }
 }
 void IRAM_ATTR restab2() //interrupcion de decremento
 {
-  if (digitalRead((btn2) == HIGH))
+  resta = digitalRead(btn2);
+  if (resta != baja)
   {
-    cbtn1--; //disminuir
+    if (resta == LOW)
+    {
+      presionar = true;
+      contador--;
+      Serial.println(contador);
+    }
+    delay(50);
   }
-  if (cbtn1 < 1)
+
+  baja = resta;
+  if (contador < 1)
   {
-    cbtn1 = 0;
+    contador= 0;
   }
 }
-
 //-----------------------------------------------------------------------------
 //Configuracion
 //-----------------------------------------------------------------------------
@@ -82,7 +105,6 @@ void setup()
   // ACA Adjuntar Interrupción al pin GPIO
   attachInterrupt(btn1, sumab1, RISING);
   attachInterrupt(btn2, restab2, RISING);
-
 }
 //-----------------------------------------------------------------------------
 //loop principal
@@ -90,7 +112,7 @@ void setup()
 
 void loop()
 {
-  
+  contador;
   //pra primer potenciometro
   voltaje = analogReadMilliVolts(pot1) / 10.0;
   int temp = voltaje;
@@ -109,34 +131,26 @@ void loop()
   temp2 = temp2 - unidades2 * 10.0;
   decimal2 = temp2;
 
+  Serial.print("voltaje: ");
   Serial.print(voltaje);
-  Serial.print("\t");
-  Serial.print(decenas);
-  Serial.print("\t");
-  Serial.print(unidades);
-  Serial.print("\t");
-  Serial.println(decimal);
+  Serial.print("\n");
 
+  Serial.print("voltaje2: ");
   Serial.print(voltaje2);
-  Serial.print("\t");
-  Serial.print(decenas2);
-  Serial.print("\t");
-  Serial.print(unidades2);
-  Serial.print("\t");
-  Serial.println(decimal2);
+  Serial.print("\n");
 
-  Serial.print(cbtn1);
+  Serial.print("CPU: ");
+  Serial.print(contador);
+  Serial.print("\n");
+  Serial.print("\n");
 
   //para limpiar LCD
   LCD.clear();
-  LCD.setCursor(0,0); 
   LCD.print("Pot1:");
-  LCD.print(" ");
   LCD.print("Pot2:");
-  LCD.print(" ");
   LCD.print("CPU:");
 
-  LCD.setCursor(2, 1); //para cambiar de fila y columna
+  LCD.setCursor(0, 1); //para cambiar de fila y columna
   LCD.print(decenas);
   LCD.print('.');
   LCD.print(unidades);
@@ -148,7 +162,7 @@ void loop()
   LCD.print(unidades2);
   LCD.print(decimal2);
   LCD.print(" ");
-  LCD.print(cbtn1);
+  LCD.print(contador);
 
-  delay(250);
+  delay(1000);
 }
